@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Check,
@@ -12,7 +12,9 @@ import {
   Sparkles,
   Database,
   Github,
+  X,
 } from "lucide-react";
+import { supabase } from "./supabaseClient";
 
 // Single-file landing page for Tally
 // Drop this into a Next.js / React route and style with TailwindCSS.
@@ -103,7 +105,227 @@ const Section = ({ children, className = "" }) => (
   </section>
 );
 
+function SignupModal({
+  open,
+  onClose,
+}) {
+  const emailRef = useRef(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [firstName, setFirstName] = useState("");
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    if (open) {
+      document.addEventListener("keydown", onKey);
+      // focus first field a tick after open
+      setTimeout(() => emailRef.current?.focus(), 10);
+      // prevent body scroll while open
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // TODO: replace with your API call (Supabase/Resend/Formspark/etc.)
+    // Read form values and show an in-modal success state instead of alert.
+    const data = Object.fromEntries(new FormData(e.currentTarget).entries());
+
+    // Attempt to insert into the `intrest_signup` table in Supabase.
+    // Table column names used here: first_name, last_name, email, phone, university, created_at
+    (async () => {
+      try {
+        const insertPayload = {
+          first_name: data.firstName || null,
+          last_name: data.lastName || null,
+          email: data.email || null,
+          phone: data.phone || null,
+          university: data.university || null,
+          created_at: new Date().toISOString(),
+        };
+
+        const { error } = await supabase.from("waitlist_subscribers").insert([insertPayload]);
+        if (error) {
+          console.error("Supabase insert error:", error);
+          // Optional: show a friendly message. Keep UX consistent and still show success modal
+          // only if you want to mask failures; here we surface an alert so user knows.
+          alert("Could not submit — please try again later.");
+          return;
+        }
+
+        setFirstName(data.firstName || "friend");
+        setSubmitted(true);
+      } catch (err) {
+        console.error("Signup error:", err);
+        alert("Could not submit — please try again later.");
+      }
+    })();
+  };
+
+  return (
+    <div
+      aria-modal="true"
+      role="dialog"
+      aria-labelledby="signup-title"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+    >
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ opacity: 0, y: 16, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.18 }}
+        className="relative w-full max-w-lg rounded-2xl border border-white/10 bg-neutral-900/95 p-6 shadow-2xl"
+      >
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-3 top-3 rounded-lg p-2 text-neutral-400 hover:bg-white/10 hover:text-white"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        {/* Header */}
+        <div className="mb-4 flex items-center gap-2">
+          <img
+            src="/tally-icon.png"
+            alt="Tally Logo"
+            className="h-12 w-12 rounded-xl"
+          />
+          <h3 id="signup-title" className="text-lg font-semibold tracking-tight">
+            Join the Tally updates list
+          </h3>
+        </div>
+
+        {/* Success state */}
+        {submitted ? (
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative flex items-center justify-center">
+              <div className="rounded-full bg-emerald-500/10 p-4 text-emerald-400">
+                <Sparkles className="h-8 w-8" />
+              </div>
+            </div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.25 }}
+              className="text-center"
+            >
+              <h4 className="text-2xl font-semibold">You're in, {firstName} 🎉</h4>
+              <p className="mt-2 text-sm text-neutral-300">Thanks for joining the list — we’ll send invites and product updates soon.</p>
+            </motion.div>
+
+            {/* simple confetti pieces */}
+            <div className="pointer-events-none absolute inset-0 -z-10 flex items-start justify-center">
+              <div className="confetti" aria-hidden>
+                <span className="confetti-piece" />
+                <span className="confetti-piece" />
+                <span className="confetti-piece" />
+                <span className="confetti-piece" />
+                <span className="confetti-piece" />
+                <span className="confetti-piece" />
+                <span className="confetti-piece" />
+                <span className="confetti-piece" />
+                <span className="confetti-piece" />
+                <span className="confetti-piece" />
+                <span className="confetti-piece" />
+                <span className="confetti-piece" />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <p className="mb-4 text-sm text-neutral-300">
+              Get product updates and early access invites. We’ll never share your info.
+            </p>
+
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-xs text-neutral-400">First name</label>
+            <input
+              name="firstName"
+              type="text"
+              className="w-full rounded-xl border border-white/10 bg-neutral-950 px-3 py-2 text-sm outline-none ring-indigo-500/30 focus:ring"
+              placeholder="Alex"
+              required
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-neutral-400">Last name <span className="text-neutral-500">(optional)</span></label>
+            <input
+              name="lastName"
+              type="text"
+              className="w-full rounded-xl border border-white/10 bg-neutral-950 px-3 py-2 text-sm outline-none ring-indigo-500/30 focus:ring"
+              placeholder="Kim"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-xs text-neutral-400">Email</label>
+            <input
+              ref={emailRef}
+              name="email"
+              type="email"
+              className="w-full rounded-xl border border-white/10 bg-neutral-950 px-3 py-2 text-sm outline-none ring-indigo-500/30 focus:ring"
+              placeholder="you@university.edu"
+              required
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-neutral-400">Phone <span className="text-neutral-500">(optional)</span></label>
+            <input
+              name="phone"
+              type="tel"
+              className="w-full rounded-xl border border-white/10 bg-neutral-950 px-3 py-2 text-sm outline-none ring-indigo-500/30 focus:ring"
+              placeholder="(555) 123-4567"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-neutral-400">University <span className="text-neutral-500">(optional)</span></label>
+            <input
+              name="university"
+              type="text"
+              className="w-full rounded-xl border border-white/10 bg-neutral-950 px-3 py-2 text-sm outline-none ring-indigo-500/30 focus:ring"
+              placeholder="Georgetown University"
+            />
+          </div>
+
+          <div className="sm:col-span-2">
+            <button
+              type="submit"
+              className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 font-medium text-neutral-900 hover:bg-neutral-200"
+            >
+              Notify me <ArrowRight className="h-4 w-4" />
+            </button>
+            <p className="mt-2 text-center text-xs text-neutral-500">
+              By submitting, you agree to receive occasional emails from Tally.
+            </p>
+          </div>
+            </form>
+          </>
+        )}
+      </motion.div>
+    </div>
+  );
+}
+
 export default function TallyLandingPage() {
+  const [signupOpen, setSignupOpen] = useState(false);
+  const updatesRef = useRef<HTMLDivElement | null>(null);
+    const openSignup = () => {
+    // Smooth-scroll to the updates anchor, then open the modal.
+    updatesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Open shortly after the scroll starts; tweak delay if desired.
+    setTimeout(() => setSignupOpen(true), 250);
+  };
   return (
     <div id="top" className="min-h-screen bg-neutral-950 text-neutral-100">
       {/* Nav */}
@@ -162,9 +384,14 @@ export default function TallyLandingPage() {
                 href="https://www.gettally.dev"
                 className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 font-medium text-neutral-900 hover:bg-neutral-200"
               >
-                Start now →
+                Try Tally V0 →
               </a>
-
+              <button
+                onClick={openSignup}
+                className="inline-flex items-center justify-center rounded-2xl border border-white/20 px-5 py-3 font-medium text-white hover:bg-white/10"
+              >
+                Sign Up for Updates
+              </button>
             </div>
             <div className="mt-6 flex items-center gap-4 text-sm text-neutral-400">
               <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> PCI‑aware best practices</div>
@@ -410,6 +637,7 @@ export default function TallyLandingPage() {
           </div>
         </Section>
       </footer>
+      <SignupModal open={signupOpen} onClose={() => setSignupOpen(false)} />
     </div>
   );
 }
