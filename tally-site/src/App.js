@@ -215,8 +215,8 @@ export default function TallyLandingPage() {
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm text-white truncate">cdt50@georgetown.edu paid</div>
-                          <div className="text-xs text-neutral-400">Test Club · Just now</div>
+                          <div className="text-sm text-white truncate">Jane Doe</div>
+                          <div className="text-xs text-neutral-400">Chess Club · Just now</div>
                         </div>
                         <div className="text-sm font-semibold text-green-400">+$1.00</div>
                       </div>
@@ -227,8 +227,8 @@ export default function TallyLandingPage() {
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm text-white truncate">cdt50@georgetown.edu payout</div>
-                          <div className="text-xs text-neutral-400">MSBTC · 2 days ago</div>
+                          <div className="text-sm text-white truncate">Steve Smith</div>
+                          <div className="text-xs text-neutral-400">Club Soccer · 2 days ago</div>
                         </div>
                         <div className="text-sm font-semibold text-red-400">-$5.00</div>
                       </div>
