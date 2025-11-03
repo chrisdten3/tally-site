@@ -94,21 +94,33 @@ const tiers = [
 ];
 
 const Section = ({ children, className = "" }) => (
-  <section className={`mx-auto w-full max-w-7xl px-6 md:px-10 ${className}`}>{children}</section>
+  // Add scrollMarginTop so anchored sections account for the sticky header height
+  <section
+    style={{ scrollMarginTop: "4rem" }}
+    className={`mx-auto w-full max-w-7xl px-6 md:px-10 ${className}`}
+  >
+    {children}
+  </section>
 );
 
 export default function TallyLandingPage() {
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100">
+    <div id="top" className="min-h-screen bg-neutral-950 text-neutral-100">
       {/* Nav */}
       <header className="sticky top-0 z-50 border-b border-white/10 bg-neutral-950/80 backdrop-blur">
         <Section className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <img
-              src="/tally-logo-transparent.png" // <-- update this to your logo file name in /public
-              alt="Tally Logo"
-              className="h-24 w-24 rounded-xl"
-            />
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              aria-label="Back to top"
+              className="-m-2 rounded-md p-2"
+            >
+              <img
+                src="/tally-logo-transparent.png" // <-- update this to your logo file name in /public
+                alt="Tally Logo"
+                className="h-24 w-24 rounded-xl"
+              />
+            </button>
           </div>
           <nav className="hidden items-center gap-6 text-sm md:flex">
             <a href="#features" className="opacity-80 hover:opacity-100">Features</a>
@@ -354,20 +366,16 @@ export default function TallyLandingPage() {
           <div className="mt-8 divide-y divide-white/10 rounded-2xl border border-white/10 bg-neutral-900/40">
             {[
               {
-                q: "Can members pay without creating an account?",
-                a: "Yes. You can share a secure pay link. Members can optionally create an account to view history and receipts.",
-              },
-              {
                 q: "Do you support multiple clubs per user?",
                 a: "Absolutely. Tally was designed for leaders in multiple orgs with different roles in each.",
               },
               {
-                q: "What integrations are available?",
-                a: "Google Sheets, CSV import/export, and popular CRMs. Campus‑wide deployments get custom integrations.",
+                q: "How easy is setup?",
+                a: "A club's balance can be live in seconds.",
               },
               {
-                q: "How hard is onboarding?",
-                a: "Most orgs import a roster and start collecting in minutes. Our team can help migrate historical data.",
+                q: "Is Tally secure?",
+                a: "Yes - all transcation are powered by Paypal. No financial data is stored on our servers.",
               },
             ].map((item) => (
               <details key={item.q} className="group p-6">

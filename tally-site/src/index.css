@@ -11,6 +11,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Enable native smooth scrolling for in-page anchors */
+html {
+  scroll-behavior: smooth;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
